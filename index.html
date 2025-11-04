@@ -4,7 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Declaração ISSQN - Profissional Autônomo</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    
+    <!-- Bibliotecas para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -84,10 +88,6 @@
             margin-bottom: 20px;
         }
 
-        .form-group.full {
-            grid-column: 1 / -1;
-        }
-
         label {
             display: block;
             margin-bottom: 5px;
@@ -115,336 +115,237 @@
             transition: all 0.3s;
         }
 
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="tel"]:focus,
-        input[type="date"]:focus,
-        select:focus,
-        textarea:focus {
+        input[readonly] {
+            background-color: #f5f6fa;
+            cursor: not-allowed;
+            color: #666;
+        }
+
+        input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
-        textarea {
-            resize: vertical;
-            min-height: 80px;
+        /* Aviso sobre o PDF */
+        .pdf-warning {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe69c 100%);
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
         }
 
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            margin-top: 10px;
-        }
-
-        .radio-option {
+        .pdf-warning h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            font-size: 16px;
             display: flex;
             align-items: center;
-            padding: 15px;
-            border: 2px solid #dfe6e9;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: all 0.3s;
+            gap: 8px;
         }
 
-        .radio-option:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
+        .pdf-warning p {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 8px;
         }
 
-        .radio-option input[type="radio"] {
-            margin-right: 15px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
+        .pdf-warning ul {
+            margin-left: 20px;
+            color: #856404;
+            font-size: 13px;
         }
 
-        .radio-option.selected {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .radio-label {
-            flex: 1;
-        }
-
-        .radio-label strong {
-            display: block;
-            color: #2c3e50;
+        .pdf-warning ul li {
             margin-bottom: 5px;
         }
 
-        .radio-label span {
-            color: #7f8c8d;
-            font-size: 13px;
-        }
-
-        .table-container {
-            overflow-x: auto;
-            margin: 20px 0;
-            border: 1px solid #dfe6e9;
-            border-radius: 5px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        table th {
-            background: #667eea;
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: bold;
-        }
-
-        table td {
-            padding: 12px;
-            border-bottom: 1px solid #dfe6e9;
-        }
-
-        table tr:last-child td {
-            border-bottom: none;
-        }
-
-        table tr:hover {
-            background: #f8f9ff;
-        }
-
-        .checkbox-group {
-            margin: 15px 0;
-        }
-
-        .checkbox-item {
-            display: flex;
-            align-items: flex-start;
-            margin-bottom: 15px;
-            padding: 15px;
-            border: 2px solid #dfe6e9;
-            border-radius: 5px;
-            transition: all 0.3s;
-        }
-
-        .checkbox-item:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
-        .checkbox-item input[type="checkbox"] {
-            margin-right: 15px;
-            margin-top: 3px;
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-        }
-
-        .checkbox-item label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: normal;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-        }
-
-        .alert-info {
-            background: #e8f4f8;
-            border-left: 4px solid #3498db;
-            color: #2c3e50;
-        }
-
-        .alert-warning {
-            background: #fef5e7;
-            border-left: 4px solid #f39c12;
-            color: #2c3e50;
-        }
-
-        .btn-container {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 30px;
-        }
-
-        .btn {
             padding: 15px 40px;
             border: none;
             border-radius: 5px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            width: 100%;
             transition: all 0.3s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-top: 20px;
         }
 
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
+        .btn-submit:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
         }
 
-        .btn-secondary {
-            background: #95a5a6;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #7f8c8d;
-            transform: translateY(-2px);
-        }
-
-        .btn:disabled {
-            background: #bdc3c7;
+        .btn-submit:disabled {
+            opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
 
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .loading-overlay.show {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
         /* Estilos para o PDF */
-        #pdfContent {
+        .pdf-document {
             position: absolute;
             left: -9999px;
             top: 0;
-            width: 210mm;
             background: white;
-        }
-
-        .pdf-document {
+            width: 190mm; /* Reduzido para dar margem */
+            padding: 10mm;
             font-family: Arial, sans-serif;
-            font-size: 11pt;
-            line-height: 1.5;
+            font-size: 10.5pt;
+            line-height: 1.4;
             color: #000;
-            padding: 40px;
         }
 
-        .pdf-document h1 {
+        .pdf-document .pdf-header {
             text-align: center;
-            font-size: 14pt;
-            margin-bottom: 10px;
-            font-weight: bold;
+            margin-bottom: 18px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 12px;
         }
 
-        .pdf-document h2 {
-            text-align: center;
-            font-size: 12pt;
-            margin-bottom: 20px;
+        .pdf-document .pdf-header h1 {
+            font-size: 17pt;
+            margin-bottom: 6px;
+            color: #000;
+        }
+
+        .pdf-document .pdf-header h2 {
+            font-size: 13pt;
+            margin-bottom: 4px;
             font-weight: normal;
+            color: #333;
         }
 
-        .pdf-document hr {
-            border: none;
-            border-top: 2px solid #000;
-            margin: 15px 0;
+        .pdf-document .pdf-header p {
+            font-size: 9pt;
+            color: #666;
         }
 
         .pdf-document h3 {
-            font-size: 11pt;
-            font-weight: bold;
+            background: #333;
+            color: white;
+            padding: 6px 10px;
             margin: 15px 0 10px 0;
-            text-transform: uppercase;
+            font-size: 11pt;
+            page-break-after: avoid;
         }
 
         .pdf-document p {
-            margin: 8px 0;
+            margin-bottom: 10px;
             text-align: justify;
+            page-break-inside: avoid;
         }
 
         .pdf-document .field-line {
-            margin: 5px 0;
+            margin-bottom: 6px;
+            line-height: 1.6;
         }
 
         .pdf-document .checkbox-line {
-            margin: 5px 0;
+            margin: 6px 0;
+            padding: 4px;
+            border: 1px solid #ddd;
+            page-break-inside: avoid;
         }
 
         .pdf-document table {
             width: 100%;
             border-collapse: collapse;
-            margin: 15px 0;
-            font-size: 9pt;
+            margin: 12px 0;
+            page-break-inside: avoid;
+        }
+
+        .pdf-document table th,
+        .pdf-document table td {
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: left;
+            font-size: 9.5pt;
         }
 
         .pdf-document table th {
-            background: #e0e0e0;
-            border: 1px solid #000;
-            padding: 8px;
+            background: #f0f0f0;
             font-weight: bold;
-            text-align: center;
-        }
-
-        .pdf-document table td {
-            border: 1px solid #000;
-            padding: 8px;
         }
 
         .pdf-document .signature-area {
-            margin-top: 40px;
+            margin-top: 35px;
             text-align: center;
+            page-break-inside: avoid;
         }
 
         .pdf-document .signature-line {
             border-top: 1px solid #000;
-            width: 400px;
-            margin: 50px auto 5px auto;
+            width: 300px;
+            margin: 45px auto 8px;
         }
 
-        @media print {
-            body {
-                background: white;
-            }
-            .container {
-                box-shadow: none;
-                padding: 20px;
-            }
-            .btn-container {
-                display: none;
-            }
+        .pdf-document hr {
+            border: none;
+            border-top: 1px solid #333;
+            margin: 15px 0;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 20px;
-            }
-            .form-row,
-            .form-row-3 {
-                grid-template-columns: 1fr;
-            }
-            .btn-container {
-                flex-direction: column;
-            }
-            .btn {
-                width: 100%;
-            }
+        .pdf-document .page-break {
+            page-break-before: always;
+            margin-top: 15px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>SECRETARIA MUNICIPAL DE ECONOMIA - SEMEC</h1>
-            <h2>SECRETARIA EXECUTIVA DA RECEITA MUNICIPAL - SERM</h2>
-            <p>Prefeitura Municipal de Porto Velho - RO</p>
-        </div>
-
-        <div class="alert alert-info">
-            <strong>📋 Instruções:</strong> Preencha todos os campos obrigatórios (*) com atenção. Ao final, você poderá gerar um PDF da declaração para salvar e/ou imprimir.
+            <h1>DECLARAÇÃO DE EXERCÍCIO DE ATIVIDADE AUTÔNOMA</h1>
+            <h2>Para fins de lançamento do ISSQN</h2>
+            <p>Prefeitura Municipal de Porto Velho - Secretaria Municipal de Economia (SEMEC)</p>
         </div>
 
         <form id="declaracaoForm">
-            <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
             <div class="form-section">
-                <h3>I - IDENTIFICAÇÃO DO DECLARANTE</h3>
+                <h3>📋 Dados Pessoais</h3>
                 
                 <div class="form-group">
                     <label for="nome" class="required">Nome Completo</label>
@@ -469,7 +370,7 @@
                     </div>
                     <div class="form-group">
                         <label for="telefone" class="required">Telefone</label>
-                        <input type="tel" id="telefone" name="telefone" placeholder="(69) 99999-9999" required>
+                        <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" required>
                     </div>
                 </div>
 
@@ -477,13 +378,17 @@
                     <label for="email" class="required">E-mail</label>
                     <input type="email" id="email" name="email" required>
                 </div>
+            </div>
 
+            <div class="form-section">
+                <h3>📍 Endereço</h3>
+                
                 <div class="form-group">
-                    <label for="endereco" class="required">Endereço Completo</label>
-                    <input type="text" id="endereco" name="endereco" placeholder="Rua, Avenida, número, complemento" required>
+                    <label for="endereco" class="required">Endereço Completo (Rua, Número, Complemento)</label>
+                    <input type="text" id="endereco" name="endereco" required>
                 </div>
 
-                <div class="form-row-3">
+                <div class="form-row">
                     <div class="form-group">
                         <label for="bairro" class="required">Bairro</label>
                         <input type="text" id="bairro" name="bairro" required>
@@ -492,396 +397,129 @@
                         <label for="cep" class="required">CEP</label>
                         <input type="text" id="cep" name="cep" placeholder="00000-000" required>
                     </div>
-                    <div class="form-group">
-                        <label for="cidade">Cidade/UF</label>
-                        <input type="text" id="cidade" name="cidade" value="Porto Velho/RO" readonly>
-                    </div>
                 </div>
+            </div>
 
+            <div class="form-section">
+                <h3>💼 Dados Profissionais</h3>
+                
                 <div class="form-group">
                     <label for="profissao" class="required">Profissão/Atividade Exercida</label>
-                    <input type="text" id="profissao" name="profissao" placeholder="Ex: Advogado, Contador, Eletricista, etc." required>
+                    <input type="text" id="profissao" name="profissao" 
+                           placeholder="Ex: Eletricista, Pedreiro, Manicure, etc." required>
                 </div>
 
                 <div class="form-group">
                     <label for="localPrestacao" class="required">Local de Prestação dos Serviços</label>
-                    <textarea id="localPrestacao" name="localPrestacao" placeholder="Informe o endereço completo onde presta os serviços" required></textarea>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 2: ENQUADRAMENTO -->
-            <div class="form-section">
-                <h3>II - ENQUADRAMENTO NA TABELA DE APURAÇÃO DO ISSQN</h3>
-
-                <div class="alert alert-warning">
-                    <strong>⚠️ Atenção:</strong> Selecione o nível de escolaridade correspondente à sua formação profissional. Esta informação determinará o valor mensal do ISSQN a ser recolhido.
-                </div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Nível de Escolaridade</th>
-                                <th>Alíquota "Ad Rem"</th>
-                                <th>Periodicidade</th>
-                                <th>Valor do Imposto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Nível fundamental ou nenhuma escolaridade</td>
-                                <td>1 UPF por profissional</td>
-                                <td>Mensal</td>
-                                <td>1 UPF</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Nível médio</td>
-                                <td>1,5 UPF por profissional</td>
-                                <td>Mensal</td>
-                                <td>1,5 UPF</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>Nível superior</td>
-                                <td>2 UPF por profissional</td>
-                                <td>Mensal</td>
-                                <td>2 UPF</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <textarea id="localPrestacao" name="localPrestacao" rows="2" required></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label class="required">Selecione seu enquadramento:</label>
-                    <div class="radio-group">
-                        <div class="radio-option" onclick="selectRadio(1)">
-                            <input type="radio" id="nivel1" name="nivel" value="1" required>
-                            <div class="radio-label">
-                                <strong>Item 1 - Nível Fundamental ou Nenhuma Escolaridade</strong>
-                                <span>Imposto mensal: 1 UPF</span>
-                            </div>
-                        </div>
-                        <div class="radio-option" onclick="selectRadio(2)">
-                            <input type="radio" id="nivel2" name="nivel" value="2">
-                            <div class="radio-label">
-                                <strong>Item 2 - Nível Médio</strong>
-                                <span>Imposto mensal: 1,5 UPF</span>
-                            </div>
-                        </div>
-                        <div class="radio-option" onclick="selectRadio(3)">
-                            <input type="radio" id="nivel3" name="nivel" value="3">
-                            <div class="radio-label">
-                                <strong>Item 3 - Nível Superior</strong>
-                                <span>Imposto mensal: 2 UPF</span>
-                            </div>
-                        </div>
-                    </div>
+                    <label for="nivel" class="required">Nível de Escolaridade</label>
+                    <select id="nivel" name="nivel" required>
+                        <option value="">Selecione...</option>
+                        <option value="1">Nível Fundamental ou Nenhuma Escolaridade (1 UPF)</option>
+                        <option value="2">Nível Médio (1,5 UPF)</option>
+                        <option value="3">Nível Superior (2 UPF)</option>
+                    </select>
                 </div>
 
                 <div class="form-group">
-                    <label for="valorUPF">Valor Atual da UPF (R$)</label>
-                    <input type="text" id="valorUPF" name="valorUPF" value="103,67" readonly style="background-color: #f0f0f0; cursor: not-allowed;">
-                    <small style="color: #7f8c8d; display: block; margin-top: 5px;">Valor vigente da Unidade Padrão Fiscal do Município de Porto Velho/RO</small>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 3: RECONHECIMENTOS E CONCORDÂNCIAS -->
-            <div class="form-section">
-                <h3>III - RECONHECIMENTO DA OBRIGAÇÃO TRIBUTÁRIA</h3>
-
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check1" name="check1" required>
-                        <label for="check1">
-                            <strong>1.</strong> RECONHEÇO que, em razão do exercício de atividade profissional autônoma no Município de Porto Velho/RO, sou contribuinte do Imposto Sobre Serviços de Qualquer Natureza - ISSQN, nos termos da legislação tributária vigente.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check2" name="check2" required>
-                        <label for="check2">
-                            <strong>2.</strong> DECLARO ter plena ciência de que o ISSQN será lançado mensalmente, em valor fixo, conforme enquadramento declarado e vencimento até o dia 10 de cada mês.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check3" name="check3" required>
-                        <label for="check3">
-                            <strong>3.</strong> CONCORDO expressamente com o lançamento mensal do ISSQN pela Administração Tributária Municipal nos valores fixados na tabela.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check4" name="check4" required>
-                        <label for="check4">
-                            <strong>4.</strong> TENHO PLENO CONHECIMENTO de que, nos anos subsequentes, o lançamento será efetuado DE OFÍCIO pela Administração Tributária, sem necessidade de nova declaração.
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 4: CONFISSÃO DE DÍVIDA -->
-            <div class="form-section">
-                <h3>IV - CONFISSÃO DE DÍVIDA E CONCORDÂNCIA COM PROCEDIMENTOS DE COBRANÇA</h3>
-
-                <div class="alert alert-warning">
-                    <strong>⚠️ IMPORTANTE:</strong> A presente declaração constitui confissão irrevogável e irretratável de dívida para todos os efeitos legais.
+                    <label for="valorUPF">Valor da UPF (R$) - Valor Fixo</label>
+                    <input type="text" id="valorUPF" name="valorUPF" value="139,03" readonly>
                 </div>
 
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check5" name="check5" required>
-                        <label for="check5">
-                            <strong>5.</strong> RECONHEÇO que esta declaração constitui CONFISSÃO IRREVOGÁVEL E IRRETRATÁVEL DE DÍVIDA líquida, certa e exigível, para fins de inscrição em Dívida Ativa, Protesto Extrajudicial e Execução Fiscal.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check6" name="check6" required>
-                        <label for="check6">
-                            <strong>6.</strong> RECONHEÇO que o não pagamento acarretará: multa de mora, juros, correção monetária, inscrição em Dívida Ativa, protesto extrajudicial e execução fiscal.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check7" name="check7" required>
-                        <label for="check7">
-                            <strong>7.</strong> CONCORDO expressamente com todos os procedimentos administrativos e judiciais de cobrança, renunciando a alegações de desconhecimento ou falta de notificação.
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 5: RESPONSABILIDADE -->
-            <div class="form-section">
-                <h3>V - RESPONSABILIDADE PELA VERACIDADE DAS INFORMAÇÕES</h3>
-
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check8" name="check8" required>
-                        <label for="check8">
-                            <strong>8.</strong> DECLARO, sob as penas da lei (especialmente arts. 299 e 304 do Código Penal), que todas as informações prestadas são verdadeiras e correspondem fielmente à realidade.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check9" name="check9" required>
-                        <label for="check9">
-                            <strong>9.</strong> COMPROMETO-ME a comunicar à SEMEC/SERM qualquer alteração nos dados declarados no prazo de 30 dias.
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SEÇÃO 6: CIÊNCIA FINAL -->
-            <div class="form-section">
-                <h3>VI - CIÊNCIA E ACEITE FINAL</h3>
-
-                <div class="checkbox-group">
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check10" name="check10" required>
-                        <label for="check10">
-                            <strong>10.</strong> DECLARO ter recebido, lido e compreendido integralmente o teor desta Declaração e os dispositivos legais aplicáveis.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check11" name="check11" required>
-                        <label for="check11">
-                            <strong>11.</strong> AUTORIZO a Administração Tributária Municipal a proceder aos lançamentos mensais do ISSQN conforme estabelecido nesta declaração.
-                        </label>
-                    </div>
-
-                    <div class="checkbox-item">
-                        <input type="checkbox" id="check12" name="check12" required>
-                        <label for="check12">
-                            <strong>12.</strong> ESTOU CIENTE de que esta declaração produzirá efeitos imediatos e permanecerá válida durante todo o período de exercício da atividade profissional.
-                        </label>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DATA -->
-            <div class="form-section">
                 <div class="form-group">
                     <label for="dataDeclaracao" class="required">Data da Declaração</label>
                     <input type="date" id="dataDeclaracao" name="dataDeclaracao" required>
                 </div>
             </div>
 
-            <!-- BOTÕES -->
-            <div class="btn-container">
-                <button type="button" class="btn btn-secondary" onclick="resetForm()">Limpar Formulário</button>
-                <button type="submit" class="btn btn-primary">Gerar PDF da Declaração</button>
+            <!-- Aviso sobre o conteúdo do PDF -->
+            <div class="pdf-warning">
+                <h4>⚠️ ATENÇÃO - Sobre a Declaração</h4>
+                <p><strong>Ao gerar o PDF, você estará produzindo um documento oficial que contém:</strong></p>
+                <ul>
+                    <li><strong>Declaração de exercício de atividade autônoma</strong> no Município de Porto Velho/RO</li>
+                    <li><strong>Enquadramento tributário</strong> conforme seu nível de escolaridade</li>
+                    <li><strong>Reconhecimento da obrigação tributária</strong> do ISSQN</li>
+                    <li><strong>Confissão irrevogável de dívida</strong> para fins de lançamento mensal do imposto</li>
+                    <li><strong>Concordância com procedimentos de cobrança</strong> (multa, juros, inscrição em dívida ativa, protesto e execução fiscal)</li>
+                    <li><strong>Declaração de responsabilidade</strong> pela veracidade das informações prestadas</li>
+                    <li><strong>Compromisso</strong> de comunicar qualquer alteração cadastral à SEMEC</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>Este documento tem validade legal e produzirá efeitos jurídicos!</strong></p>
             </div>
+
+            <button type="submit" class="btn-submit">
+                📄 Gerar Declaração em PDF
+            </button>
         </form>
     </div>
 
-    <!-- CONTEÚDO PARA PDF (OCULTO) -->
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h2>Gerando PDF...</h2>
+            <p>Por favor, aguarde alguns instantes</p>
+        </div>
+    </div>
+
+    <!-- Container para o PDF (invisível) -->
     <div id="pdfContent"></div>
 
     <script>
-        /*
-        ==========================================
-        CONFIGURAÇÃO DO VALOR DA UPF
-        ==========================================
-        Para atualizar o valor da UPF anualmente,
-        altere o valor abaixo na linha indicada:
-        */
-        const VALOR_UPF_ATUAL = '103,67'; // <-- ALTERAR AQUI ANUALMENTE
-        
-        // Definir o valor no campo ao carregar a página
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('valorUPF').value = VALOR_UPF_ATUAL;
-        });
-        /*
-        ==========================================
-        */
-
-        // Máscaras para inputs
+        // Máscaras de input
         document.getElementById('cpf').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d)/, '$1.$2');
-                value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-                e.target.value = value;
-            }
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d)/, '$1.$2');
+            value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+            e.target.value = value;
         });
 
         document.getElementById('telefone').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 11) {
-                value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-                value = value.replace(/(\d)(\d{4})$/, '$1-$2');
-                e.target.value = value;
-            }
+            value = value.replace(/(\d{2})(\d)/, '($1) $2');
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
         });
 
         document.getElementById('cep').addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
-            if (value.length <= 8) {
-                value = value.replace(/^(\d{5})(\d)/, '$1-$2');
-                e.target.value = value;
-            }
+            value = value.replace(/(\d{5})(\d)/, '$1-$2');
+            e.target.value = value;
         });
 
-        // Função para selecionar radio button
-        function selectRadio(num) {
-            document.getElementById('nivel' + num).checked = true;
-            
-            // Remove seleção visual de todos
-            document.querySelectorAll('.radio-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            // Adiciona seleção visual ao clicado
-            event.currentTarget.classList.add('selected');
-        }
-
-        // Set data atual como padrão
+        // Definir data atual
         document.getElementById('dataDeclaracao').valueAsDate = new Date();
 
-        // Função para resetar formulário
-        function resetForm() {
-            if (confirm('Tem certeza que deseja limpar todos os campos do formulário?')) {
-                document.getElementById('declaracaoForm').reset();
-                document.querySelectorAll('.radio-option').forEach(option => {
-                    option.classList.remove('selected');
-                });
-                document.getElementById('dataDeclaracao').valueAsDate = new Date();
-            }
-        }
-
-        // Função para formatar data
+        // Funções auxiliares
         function formatarData(data) {
-            const d = new Date(data + 'T00:00:00');
-            const dia = String(d.getDate()).padStart(2, '0');
-            const mes = String(d.getMonth() + 1).padStart(2, '0');
-            const ano = d.getFullYear();
+            const [ano, mes, dia] = data.split('-');
             return `${dia}/${mes}/${ano}`;
         }
 
-        // Função para formatar data por extenso
         function formatarDataExtenso(data) {
-            const d = new Date(data + 'T00:00:00');
-            const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
-                          'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-            const dia = d.getDate();
-            const mes = meses[d.getMonth()];
-            const ano = d.getFullYear();
-            return `${dia} de ${mes} de ${ano}`;
+            const meses = [
+                'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+                'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+            ];
+            const [ano, mes, dia] = data.split('-');
+            return `${dia} de ${meses[parseInt(mes) - 1]} de ${ano}`;
         }
 
-        // Função para obter texto do nível selecionado
-        function getNivelTexto(nivel) {
-            const niveis = {
-                '1': {
-                    item: '1',
-                    descricao: 'Nível fundamental ou nenhuma escolaridade',
-                    aliquota: '1 UPF por profissional',
-                    valor: '1 UPF'
-                },
-                '2': {
-                    item: '2',
-                    descricao: 'Nível médio',
-                    aliquota: '1,5 UPF por profissional',
-                    valor: '1,5 UPF'
-                },
-                '3': {
-                    item: '3',
-                    descricao: 'Nível superior',
-                    aliquota: '2 UPF por profissional',
-                    valor: '2 UPF'
-                }
-            };
-            return niveis[nivel];
-        }
-
-        // Função para calcular valor mensal
         function calcularValorMensal(nivel, valorUPF) {
-            const multiplicadores = {
-                '1': 1,
-                '2': 1.5,
-                '3': 2
-            };
-            const valor = parseFloat(valorUPF.replace(',', '.')) * multiplicadores[nivel];
-            return valor.toFixed(2).replace('.', ',');
+            const multiplicadores = { '1': 1, '2': 1.5, '3': 2 };
+            const upfNum = parseFloat(valorUPF.replace(',', '.'));
+            return (upfNum * multiplicadores[nivel]).toFixed(2).replace('.', ',');
         }
 
-        // Submit do formulário
-        document.getElementById('declaracaoForm').addEventListener('submit', function(e) {
+        // Submissão do formulário
+        document.getElementById('declaracaoForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            // Salvar referência ao botão submit
-            const submitButton = e.submitter || document.querySelector('button[type="submit"]');
-
-            // Validar todos os checkboxes
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            let todosCheckados = true;
-            
-            checkboxes.forEach(checkbox => {
-                if (!checkbox.checked) {
-                    todosCheckados = false;
-                }
-            });
-
-            if (!todosCheckados) {
-                alert('Por favor, marque todas as declarações de ciência e concordância antes de gerar o PDF.');
-                return;
-            }
-
-            // Validar nível selecionado
-            const nivelSelecionado = document.querySelector('input[name="nivel"]:checked');
-            if (!nivelSelecionado) {
-                alert('Por favor, selecione o nível de escolaridade.');
-                return;
-            }
-
-            // Coletar dados do formulário
             const dados = {
                 nome: document.getElementById('nome').value,
                 cpf: document.getElementById('cpf').value,
@@ -894,187 +532,174 @@
                 cep: document.getElementById('cep').value,
                 profissao: document.getElementById('profissao').value,
                 localPrestacao: document.getElementById('localPrestacao').value,
-                nivel: nivelSelecionado.value,
+                nivel: document.getElementById('nivel').value,
                 valorUPF: document.getElementById('valorUPF').value,
                 dataDeclaracao: document.getElementById('dataDeclaracao').value
             };
 
-            const nivelInfo = getNivelTexto(dados.nivel);
+            const nivelInfo = {
+                '1': { valor: '1 UPF' },
+                '2': { valor: '1,5 UPF' },
+                '3': { valor: '2 UPF' }
+            };
+
             const valorMensal = calcularValorMensal(dados.nivel, dados.valorUPF);
 
-            // Gerar HTML do PDF
+            // Mostrar overlay de loading
+            document.getElementById('loadingOverlay').classList.add('show');
+            document.getElementById('declaracaoForm').querySelector('.btn-submit').disabled = true;
+
+            // Criar HTML do PDF - Dividido em 2 páginas
             const pdfHTML = `
-                <div class="pdf-document">
-                    <h1>DECLARAÇÃO PARA LANÇAMENTO DE ISSQN DE PROFISSIONAL AUTÔNOMO</h1>
-                    <hr>
-                    <h2>DECLARAÇÃO DE ENQUADRAMENTO E CONCORDÂNCIA PARA LANÇAMENTO MENSAL DO<br>
-                    IMPOSTO SOBRE SERVIÇOS DE QUALQUER NATUREZA – ISSQN</h2>
-                    <p style="text-align: center;"><strong>Profissional Autônomo - Art. 274, II da Lei Complementar Municipal nº 878/2021</strong></p>
-                    <hr>
+                <div class="pdf-document" id="pdfElement">
+                    <!-- PÁGINA 1 -->
+                    <div class="pdf-page">
+                        <div class="pdf-header">
+                            <h1>DECLARAÇÃO DE EXERCÍCIO DE ATIVIDADE AUTÔNOMA</h1>
+                            <h2>Para fins de lançamento do ISSQN</h2>
+                            <p>Prefeitura Municipal de Porto Velho - Secretaria Municipal de Economia (SEMEC)</p>
+                        </div>
 
-                    <h3>IDENTIFICAÇÃO DO DECLARANTE</h3>
-                    <div class="field-line"><strong>Nome Completo:</strong> ${dados.nome}</div>
-                    <div class="field-line"><strong>CPF:</strong> ${dados.cpf} &nbsp;&nbsp;&nbsp; <strong>RG:</strong> ${dados.rg}</div>
-                    <div class="field-line"><strong>Data de Nascimento:</strong> ${dados.dataNascimento} &nbsp;&nbsp;&nbsp; <strong>Telefone:</strong> ${dados.telefone}</div>
-                    <div class="field-line"><strong>E-mail:</strong> ${dados.email}</div>
-                    <div class="field-line"><strong>Endereço Completo:</strong> ${dados.endereco}</div>
-                    <div class="field-line"><strong>CEP:</strong> ${dados.cep} &nbsp;&nbsp;&nbsp; <strong>Bairro:</strong> ${dados.bairro} &nbsp;&nbsp;&nbsp; <strong>Cidade/UF:</strong> Porto Velho/RO</div>
-                    <div class="field-line"><strong>Profissão/Atividade Exercida:</strong> ${dados.profissao}</div>
-                    <div class="field-line"><strong>Local de Prestação dos Serviços:</strong> ${dados.localPrestacao}</div>
+                        <div class="field-line"><strong>Nome Completo:</strong> ${dados.nome}</div>
+                        <div class="field-line"><strong>CPF:</strong> ${dados.cpf} &nbsp;&nbsp; <strong>RG:</strong> ${dados.rg}</div>
+                        <div class="field-line"><strong>Data de Nascimento:</strong> ${dados.dataNascimento} &nbsp;&nbsp; <strong>Telefone:</strong> ${dados.telefone}</div>
+                        <div class="field-line"><strong>E-mail:</strong> ${dados.email}</div>
+                        <div class="field-line"><strong>Endereço:</strong> ${dados.endereco}</div>
+                        <div class="field-line"><strong>CEP:</strong> ${dados.cep} &nbsp;&nbsp; <strong>Bairro:</strong> ${dados.bairro} &nbsp;&nbsp; <strong>Cidade/UF:</strong> Porto Velho/RO</div>
+                        <div class="field-line"><strong>Profissão:</strong> ${dados.profissao}</div>
+                        <div class="field-line"><strong>Local de Prestação:</strong> ${dados.localPrestacao}</div>
 
-                    <h3>I - DECLARAÇÃO DE EXERCÍCIO DE ATIVIDADE AUTÔNOMA</h3>
-                    <p>Declaro, para os devidos fins de direito e sob as penas da lei, que exerço atividade profissional autônoma, de forma habitual e permanente, prestando serviços de natureza <strong>${dados.profissao}</strong> no Município de Porto Velho/RO, nos termos do art. 1º e seguintes da Lei Complementar Municipal nº 878/2021 (Código Tributário Municipal).</p>
+                        <h3>I - DECLARAÇÃO DE EXERCÍCIO DE ATIVIDADE AUTÔNOMA</h3>
+                        <p>Declaro, para os devidos fins de direito e sob as penas da lei, que exerço atividade profissional autônoma, de forma habitual e permanente, prestando serviços de natureza <strong>${dados.profissao}</strong> no Município de Porto Velho/RO.</p>
 
-                    <h3>II - ENQUADRAMENTO NA TABELA DE APURAÇÃO DO ISSQN</h3>
-                    <p>Declaro que me enquadro na seguinte categoria, conforme Tabela B - Tabela de Apuração do Valor do ISSQN dos Profissionais Autônomos, constante do Anexo I da LC 878/2021:</p>
-                    
-                    <div class="checkbox-line"><strong>[${dados.nivel === '1' ? 'X' : ' '}] Item 1</strong> - Nível fundamental ou nenhuma escolaridade - <strong>Alíquota: 1 UPF mensal - Imposto: 1 UPF</strong></div>
-                    <div class="checkbox-line"><strong>[${dados.nivel === '2' ? 'X' : ' '}] Item 2</strong> - Nível médio - <strong>Alíquota: 1,5 UPF mensal - Imposto: 1,5 UPF</strong></div>
-                    <div class="checkbox-line"><strong>[${dados.nivel === '3' ? 'X' : ' '}] Item 3</strong> - Nível superior - <strong>Alíquota: 2 UPF mensal - Imposto: 2 UPF</strong></div>
+                        <h3>II - ENQUADRAMENTO NA TABELA DE APURAÇÃO DO ISSQN</h3>
+                        <p>Declaro que me enquadro na seguinte categoria:</p>
+                        
+                        <div class="checkbox-line"><strong>[${dados.nivel === '1' ? 'X' : ' '}]</strong> Item 1 - Fundamental ou nenhuma escolaridade - Imposto: 1 UPF</div>
+                        <div class="checkbox-line"><strong>[${dados.nivel === '2' ? 'X' : ' '}]</strong> Item 2 - Nível médio - Imposto: 1,5 UPF</div>
+                        <div class="checkbox-line"><strong>[${dados.nivel === '3' ? 'X' : ' '}]</strong> Item 3 - Nível superior - Imposto: 2 UPF</div>
 
-                    <p><strong>Valor mensal devido:</strong> ${nivelInfo.valor}, correspondente a R$ ${valorMensal} (valor calculado com base na UPF vigente na data desta declaração - R$ ${dados.valorUPF}).</p>
+                        <p><strong>Valor mensal devido:</strong> ${nivelInfo[dados.nivel].valor}, correspondente a R$ ${valorMensal}</p>
 
-                    <h3>III - RECONHECIMENTO DA OBRIGAÇÃO TRIBUTÁRIA</h3>
-                    <p><strong>1.</strong> RECONHEÇO que, em razão do exercício de atividade profissional autônoma no Município de Porto Velho/RO, sou contribuinte do Imposto Sobre Serviços de Qualquer Natureza - ISSQN, nos termos dos artigos 9º, 10 e 156, III, da Constituição Federal, artigos 153 e seguintes do Código Tributário Nacional (Lei nº 5.172/66) e artigos 272 a 275 da Lei Complementar Municipal nº 878/2021.</p>
+                        <h3>III - RECONHECIMENTO DA OBRIGAÇÃO TRIBUTÁRIA</h3>
+                        <p><strong>1.</strong> RECONHEÇO que sou contribuinte autônomo, sujeito às regras dessa natureza, do ISSQN no Município de Porto Velho/RO.</p>
+                        <p><strong>2.</strong> DECLARO ter plena ciência de que o ISSQN será lançado anualmente com parcelas mensais.</p>
+                        <p><strong>3.</strong> CONCORDO com o lançamento anual do ISSQN pela Administração Tributária.</p>
 
-                    <p><strong>2.</strong> DECLARO ter plena ciência de que o ISSQN incidente sobre minhas atividades profissionais será lançado mensalmente, em valor fixo, conforme enquadramento declarado acima e apurado com base na Tabela B do Anexo I da LC 878/2021.</p>
-
-                    <p><strong>3.</strong> CONCORDO expressamente com o lançamento mensal do ISSQN pela Administração Tributária Municipal, nos valores fixados na tabela acima identificada, com vencimento até o dia 10 (dez) de cada mês, conforme determina o Regulamento do Código Tributário Municipal (Decreto nº 18.749/2023).</p>
-
-                    <p><strong>4.</strong> TENHO PLENO CONHECIMENTO de que, após este primeiro lançamento por declaração, nos anos subsequentes o lançamento do ISSQN será efetuado de ofício pela Administração Tributária, sem necessidade de nova declaração, mantendo-se os mesmos critérios de enquadramento, salvo se houver alteração no nível de escolaridade ou na atividade exercida, hipótese em que devo comunicar imediatamente a SEMEC/SERM.</p>
-
-                    <h3>IV - CONFISSÃO DE DÍVIDA E CONCORDÂNCIA COM PROCEDIMENTOS DE COBRANÇA</h3>
-                    <p><strong>5.</strong> Esta declaração constitui CONFISSÃO IRREVOGÁVEL E IRRETRATÁVEL DE DÍVIDA líquida, certa e exigível, para todos os efeitos legais, especialmente para fins de inscrição em Dívida Ativa, Protesto Extrajudicial e Execução Fiscal, nos termos dos artigos 201 a 204 do Código Tributário Nacional e da Lei Federal nº 6.830/80 (Lei de Execuções Fiscais).</p>
-
-                    <p><strong>6.</strong> RECONHEÇO que o não pagamento do ISSQN nos prazos estabelecidos acarretará: <strong>a)</strong> Incidência de multa de mora, juros e correção monetária, nos termos do art. 178 da LC 878/2021; <strong>b)</strong> Inscrição do débito em Dívida Ativa Municipal, com a consequente expedição de Certidão de Dívida Ativa (CDA), que constitui título executivo extrajudicial; <strong>c)</strong> Encaminhamento do débito para Protesto Extrajudicial, conforme Lei Federal nº 12.767/2012; <strong>d)</strong> Ajuizamento de Execução Fiscal para cobrança judicial do crédito tributário.</p>
-
-                    <p><strong>7.</strong> CONCORDO expressamente com todos os procedimentos administrativos e judiciais de cobrança acima elencados, renunciando desde já a qualquer alegação de desconhecimento ou falta de notificação prévia, tendo em vista que esta declaração constitui ciência inequívoca da obrigação tributária e de suas consequências.</p>
-
-                    <h3>V - RESPONSABILIDADE PELA VERACIDADE DAS INFORMAÇÕES</h3>
-                    <p><strong>8.</strong> DECLARO, sob as penas da lei, especialmente aquelas previstas nos artigos 299 e 304 do Código Penal Brasileiro (falsidade ideológica e uso de documento falso) e no art. 312 da LC 878/2021 (crime contra a ordem tributária municipal), que todas as informações prestadas nesta declaração são verdadeiras e correspondem fielmente à realidade dos fatos.</p>
-
-                    <p><strong>9.</strong> COMPROMETO-ME a comunicar à Secretaria Municipal de Economia - SEMEC, por meio da Secretaria Executiva da Receita Municipal - SERM, qualquer alteração nos dados declarados, especialmente mudança de endereço, encerramento da atividade ou alteração no nível de escolaridade, no prazo de 30 (trinta) dias contados da ocorrência do fato.</p>
-
-                    <h3>VI - CIÊNCIA E ACEITE FINAL</h3>
-                    <p><strong>10.</strong> DECLARO ter recebido, lido e compreendido integralmente o teor desta Declaração, bem como os dispositivos legais que regulamentam a tributação de profissionais autônomos pelo ISSQN no Município de Porto Velho/RO.</p>
-
-                    <p><strong>11.</strong> AUTORIZO a Administração Tributária Municipal a proceder aos lançamentos mensais do ISSQN, conforme os valores e critérios estabelecidos nesta declaração e na legislação vigente.</p>
-
-                    <p><strong>12.</strong> ESTOU CIENTE de que esta declaração produzirá efeitos a partir de ${formatarData(dados.dataDeclaracao)} e permanecerá válida enquanto perdurar o exercício da atividade profissional autônoma no Município de Porto Velho/RO.</p>
-
-                    <h3>ANEXO - TABELA B (Reprodução para ciência do declarante)</h3>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Item</th>
-                                <th>Profissionais autônomos por nível de escolaridade</th>
-                                <th>Alíquota "Ad Rem"</th>
-                                <th>Periodicidade</th>
-                                <th>Valor do Imposto</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td>Nível fundamental ou nenhuma escolaridade</td>
-                                <td>1 UPF por profissional</td>
-                                <td>Mensal</td>
-                                <td>1 UPF</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td>Nível médio</td>
-                                <td>1,5 UPF por profissional</td>
-                                <td>Mensal</td>
-                                <td>1,5 UPF</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td>Nível superior</td>
-                                <td>2 UPF por profissional</td>
-                                <td>Mensal</td>
-                                <td>2 UPF</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <p style="font-size: 9pt; margin-top: 5px;"><em>* UPF - Unidade Padrão Fiscal do Município de Porto Velho, nos termos do art. 289 da LC 878/2021.</em></p>
-
-                    <hr>
-                    <p style="text-align: center; margin-top: 20px;">Porto Velho/RO, ${formatarDataExtenso(dados.dataDeclaracao)}.</p>
-
-                    <div class="signature-area">
-                        <div class="signature-line"></div>
-                        <strong>${dados.nome}</strong><br>
-                        CPF: ${dados.cpf}
+                        <h3>IV - CONFISSÃO DE DÍVIDA</h3>
+                        <p><strong>4.</strong> Esta declaração constitui CONFISSÃO DE DÍVIDA líquida, certa e exigível.</p>
                     </div>
 
-                    <hr style="margin-top: 40px;">
-                    <p style="font-size: 9pt;"><strong>BASE LEGAL:</strong></p>
-                    <p style="font-size: 9pt;">Constituição Federal de 1988, art. 156, III • Lei nº 5.172/66 (Código Tributário Nacional), arts. 142, 145, 149, 150, 201 a 204 • Lei Complementar nº 116/2003 • Lei Complementar Municipal nº 878/2021, arts. 1º, 9º, 10, 178, 272 a 275, 289, 312 • Decreto Municipal nº 18.749/2023 (Regulamento do CTM) • Lei Federal nº 6.830/80 (Execuções Fiscais) • Lei Federal nº 12.767/2012 (Protesto de CDAs)</p>
+                    <!-- PÁGINA 2 -->
+                    <div class="page-break"></div>
+                    <div class="pdf-page">
+                        <p><strong>5.</strong> RECONHEÇO que o não pagamento acarretará multa, juros e inscrição em Dívida Ativa.</p>
+
+                        <h3>V - RESPONSABILIDADE</h3>
+                        <p><strong>6.</strong> DECLARO, sob as penas da lei, que todas as informações são verdadeiras.</p>
+
+                        <h3>ANEXO - TABELA B</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Profissionais autônomos por nível</th>
+                                    <th>Alíquota</th>
+                                    <th>Imposto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Nível fundamental ou nenhuma escolaridade</td>
+                                    <td>1 UPF</td>
+                                    <td>1 UPF</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Nível médio</td>
+                                    <td>1,5 UPF</td>
+                                    <td>1,5 UPF</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Nível superior</td>
+                                    <td>2 UPF</td>
+                                    <td>2 UPF</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <hr>
+                        <p style="text-align: center; margin-top: 20px;">Porto Velho/RO, ${formatarDataExtenso(dados.dataDeclaracao)}</p>
+
+                        <div class="signature-area">
+                            <div class="signature-line"></div>
+                            <strong>${dados.nome}</strong><br>
+                            CPF: ${dados.cpf}
+                        </div>
+
+                        <hr style="margin-top: 30px;">
+                        <p style="font-size: 9pt;"><strong>BASE LEGAL:</strong> Lei Complementar Municipal nº 878/2021</p>
+                    </div>
                 </div>
             `;
 
-            // Inserir HTML no container oculto
-            document.getElementById('pdfContent').innerHTML = pdfHTML;
+            // Inserir no DOM temporariamente
+            const container = document.getElementById('pdfContent');
+            container.innerHTML = pdfHTML;
 
-            // Aguardar um momento para o DOM renderizar
-            setTimeout(() => {
-                // Configurações do PDF
-                const element = document.getElementById('pdfContent');
+            // Aguardar renderização
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const element = document.getElementById('pdfElement');
+
+            try {
+                // Criar PDF usando jsPDF diretamente com múltiplas páginas
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+
+                // Capturar cada página separadamente
+                const pages = element.querySelectorAll('.pdf-page');
                 
-                // Verificar se o elemento tem conteúdo
-                if (!element || element.innerHTML.trim() === '') {
-                    alert('Erro: Conteúdo do PDF não foi gerado corretamente.');
-                    return;
-                }
+                for (let i = 0; i < pages.length; i++) {
+                    if (i > 0) {
+                        pdf.addPage();
+                    }
 
-                const opt = {
-                    margin: [10, 10, 10, 10],
-                    filename: `Declaracao_ISSQN_${dados.cpf.replace(/\D/g, '')}_${dados.dataDeclaracao}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2, 
+                    const canvas = await html2canvas(pages[i], {
+                        scale: 2,
                         useCORS: true,
                         logging: false,
-                        letterRendering: true,
-                        allowTaint: false
-                    },
-                    jsPDF: { 
-                        unit: 'mm', 
-                        format: 'a4', 
-                        orientation: 'portrait',
-                        compress: true
-                    },
-                    pagebreak: { 
-                        mode: ['avoid-all', 'css', 'legacy'],
-                        before: '.page-break'
-                    }
-                };
-
-                // Mostrar mensagem de processamento
-                const originalText = submitButton.textContent;
-                submitButton.textContent = 'Gerando PDF...';
-                submitButton.disabled = true;
-
-                // Gerar PDF
-                html2pdf()
-                    .set(opt)
-                    .from(element)
-                    .save()
-                    .then(() => {
-                        submitButton.textContent = originalText;
-                        submitButton.disabled = false;
-                        alert('PDF gerado com sucesso! O download foi iniciado automaticamente.');
-                        // Limpar o conteúdo após gerar
-                        document.getElementById('pdfContent').innerHTML = '';
-                    })
-                    .catch(err => {
-                        submitButton.textContent = originalText;
-                        submitButton.disabled = false;
-                        console.error('Erro ao gerar PDF:', err);
-                        alert('Erro ao gerar o PDF. Por favor, tente novamente.\n\nDetalhes: ' + err.message);
+                        backgroundColor: '#ffffff',
+                        width: pages[i].scrollWidth,
+                        height: pages[i].scrollHeight
                     });
-            }, 500); // Delay de 500ms para garantir renderização
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgWidth = 210; // A4 width
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    
+                    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                }
+
+                // Salvar PDF
+                pdf.save(`Declaracao_ISSQN_${dados.cpf.replace(/\D/g, '')}.pdf`);
+
+                // Limpar
+                container.innerHTML = '';
+                document.getElementById('loadingOverlay').classList.remove('show');
+                document.getElementById('declaracaoForm').querySelector('.btn-submit').disabled = false;
+
+                alert('✅ PDF gerado com sucesso!');
+
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                container.innerHTML = '';
+                document.getElementById('loadingOverlay').classList.remove('show');
+                document.getElementById('declaracaoForm').querySelector('.btn-submit').disabled = false;
+                alert('❌ Erro ao gerar PDF: ' + error.message);
+            }
         });
     </script>
 </body>
