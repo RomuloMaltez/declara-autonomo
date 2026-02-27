@@ -677,10 +677,24 @@
                     });
 
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                    const imgWidth = 210; // A4 width
+                    // Configuração padrão A4 com margens de 20mm
+                    const margin = 20;
+                    const pageWidth = 210;
+                    const pageHeight = 297;
+
+                    const usableWidth = pageWidth - (margin * 2);
+                    const usableHeight = pageHeight - (margin * 2);
+
+                    const imgWidth = usableWidth;
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-                    
-                    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+
+                    // Centraliza verticalmente caso fique menor que a altura útil
+                    let positionY = margin;
+                    if (imgHeight < usableHeight) {
+                        positionY = margin + ((usableHeight - imgHeight) / 2);
+                    }
+
+                    pdf.addImage(imgData, 'JPEG', margin, positionY, imgWidth, imgHeight);
                 }
 
                 // Salvar PDF
