@@ -32,7 +32,7 @@ export default function DadosProfissionaisSection({ value, onChange, errors }: P
             {/* Cabeçalho da Seção */}
             <div className="bg-gray-100 px-4 py-2 rounded-t-md border-b border-gray-200">
                 <h5 className="text-sm md:text-base font-semibold !text-gray-800 flex items-center gap-2">
-                    <span>💼</span> DADOS PROFISSIONAIS
+                    DADOS PROFISSIONAIS
                 </h5>
             </div>
 

@@ -13,7 +13,6 @@ import { DeclaracaoPDF } from "@/components/DeclaracaoPDF";
 export type FormErrors = {
     nome?: string;
     cpf?: string;
-    rg?: string;
     dataNascimento?: string;
     telefone?: string;
     email?: string;
@@ -31,7 +30,6 @@ const formSchema = z.object({
     // Validações dos Dados Pessoais
     nome: z.string().min(3, "O nome deve ter pelo menos 3 caracteres."),
     cpf: z.string().min(14, "O CPF deve estar completo (11 dígitos)."),
-    rg: z.string().min(2, "O RG é obrigatório."),
     dataNascimento: z.string().min(10, "A data de nascimento é obrigatória."),
     telefone: z.string().min(14, "Telefone incompleto."),
     email: z.string().email("Digite um e-mail válido."),
@@ -125,7 +123,7 @@ export default function DeclaracaoAutonomoPage() {
             
             // 1. Definimos a ordem exata em que os campos aparecem na tela
             const ordemDosCampos: (keyof FormErrors)[] = [
-                "nome", "cpf", "rg", "dataNascimento", "telefone", "email", // Dados Pessoais
+                "nome", "cpf", "dataNascimento", "telefone", "email", // Dados Pessoais
                 "endereco", "bairro", "cep",                                // Endereço
                 "profissao", "localPrestacao", "nivel", "dataDeclaracao"    // Dados Profissionais
             ];

@@ -63,8 +63,8 @@ const pdfParagraphStyle: CSSProperties = {
 
 const pdfCheckboxLineStyle: CSSProperties = {
     margin: "6px 0",
-    padding: "4px",
-    border: "1px solid #ddd",
+    padding: "0 0 12px 5px",
+    border: "1px solid #ddd"
 };
 
 const pdfTableStyle: CSSProperties = {

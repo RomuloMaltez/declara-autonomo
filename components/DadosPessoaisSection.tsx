@@ -109,17 +109,15 @@ export default function DadosPessoaisSection({ value, onChange, errors }: Props)
                 {/* RG */}
                 <div>
                     <label className="block font-semibold mb-1">
-                        RG: <span className="text-red-500 ml-1">*</span>
+                        RG:
                     </label>
                     <input
                         type="text"
-                        name="rg"
                         value={value.rg}
                         onChange={(e) => handleChange("rg", e.target.value)}
                         placeholder="Número do RG"
-                        className={`w-full p-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-pv-blue-900 focus:border-pv-blue-600 transition ${errors.rg ? "border-red-500" : "border-gray-200"}`}
+                        className={`w-full p-2 border rounded-md focus:outline-none focus:ring-1 focus:ring-pv-blue-900 focus:border-pv-blue-600 transition border-gray-200`}
                     />
-                    {errors.rg && <p className="text-red-600 text-sm mt-1">{errors.rg}</p>}
                 </div>
 
                 {/* Data de Nascimento */}
