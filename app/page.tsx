@@ -79,9 +79,14 @@ export default function DeclaracaoAutonomoPage() {
         setIsGeneratingPdf(true);
 
         try {
-            // Importa o pdfmake dinamicamente para evitar erro de servidor (Next.js)
-            const pdfMake = (await import("pdfmake/build/pdfmake")).default;
-            const pdfFonts = (await import("pdfmake/build/vfs_fonts")).default;
+            // Importações dinâmicas forçadas como 'any' para evitar erro do VFS
+            const pdfMakeModule = await import("pdfmake/build/pdfmake") as any;
+            const pdfFontsModule = await import("pdfmake/build/vfs_fonts") as any;
+
+            // Garantindo que ele pegue o construtor certo independente do empacotador
+            const pdfMake = pdfMakeModule.default || pdfMakeModule;
+            const pdfFonts = pdfFontsModule.default || pdfFontsModule;
+
             pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
 
             // Importa nosso template montador
@@ -90,8 +95,8 @@ export default function DeclaracaoAutonomoPage() {
             // Empacota os dados para a função
             const formData = { dadosPessoais, dadosEndereco, dadosProfissionais };
 
-            // Monta o documento passando os dados e a UPF atual
-            const docDefinition = createDeclaracaoDoc(formData, VALOR_UPF_ATUAL);
+            // Força a tipagem 'any' na saída para o TS não reclamar das margens (number[])
+            const docDefinition: any = createDeclaracaoDoc(formData, VALOR_UPF_ATUAL);
 
             // Gera e Baixa o PDF
             pdfMake.createPdf(docDefinition).download(`Declaracao_ISSQN_${dadosPessoais.cpf.replace(/\D/g, '')}.pdf`);
@@ -119,7 +124,7 @@ export default function DeclaracaoAutonomoPage() {
         if (!result.success) {
             const formattedErrors = result.error.flatten().fieldErrors;
             setErrors(formattedErrors as any);
-            
+
             // 1. Definimos a ordem exata em que os campos aparecem na tela
             const ordemDosCampos: (keyof FormErrors)[] = [
                 "nome", "cpf", "dataNascimento", "telefone", "email", // Dados Pessoais
@@ -128,22 +133,22 @@ export default function DeclaracaoAutonomoPage() {
             ];
 
             // 2. Encontramos qual é o PRIMEIRO campo da nossa lista que contém um erro
-            const primeiroCampoComErro = ordemDosCampos.find(campo => 
+            const primeiroCampoComErro = ordemDosCampos.find(campo =>
                 formattedErrors[campo as keyof typeof formattedErrors]
             );
 
             if (primeiroCampoComErro) {
                 // 3. Buscamos o elemento HTML desse campo na tela usando o atributo 'name'
                 const elemento = document.querySelector(`[name="${primeiroCampoComErro}"]`) as HTMLElement;
-                
+
                 if (elemento) {
                     // Rola a tela suavemente deixando o campo no centro da visão
                     elemento.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     // Opcional: Já coloca o cursor piscando dentro do campo para o usuário digitar
-                    elemento.focus(); 
+                    elemento.focus();
                 }
             }
-            
+
             return;
         }
 
@@ -234,7 +239,7 @@ export default function DeclaracaoAutonomoPage() {
                             type="submit"
                             disabled={isGeneratingPdf}
                             className={`bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-10 rounded-md shadow-lg transition flex items-center justify-center gap-2 mx-auto w-full md:w-auto
-                                ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                                    ${isGeneratingPdf ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                         >
                             {isGeneratingPdf ? "Gerando PDF..." : "Gerar PDF"}
                         </button>
