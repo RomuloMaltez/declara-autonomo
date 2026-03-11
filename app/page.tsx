@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { z } from "zod";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import DadosPessoaisSection from "@/components/DadosPessoaisSection";
 import EnderecoSection from "@/components/EnderecoSection";
-import DadosProfissionaisSection from "@/components/DadosProfissionaisSection"; 
-import { DeclaracaoPDF } from "@/components/DeclaracaoPDF"; 
+import DadosProfissionaisSection, { VALOR_UPF_ATUAL } from "@/components/DadosProfissionaisSection";
 
 // 1. Tipagem dos Erros (Agora com os Dados Profissionais)
 export type FormErrors = {
@@ -51,7 +48,6 @@ export default function DeclaracaoAutonomoPage() {
     const [errors, setErrors] = useState<FormErrors>({});
 
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
-    const pdfRef = useRef<HTMLDivElement>(null);
 
     const [dadosPessoais, setDadosPessoais] = useState({
         nome: "",
@@ -80,26 +76,29 @@ export default function DeclaracaoAutonomoPage() {
 
 
     async function generatePdf() {
-        if (!pdfRef.current) return;
         setIsGeneratingPdf(true);
-        try {
-            await new Promise<void>((resolve) => setTimeout(resolve, 300));
-            const pages = pdfRef.current.querySelectorAll<HTMLElement>(".pdf-page");
-            const pdf = new jsPDF("p", "mm", "a4");
 
-            for (let i = 0; i < pages.length; i++) {
-                if (i > 0) pdf.addPage();
-                const canvas = await html2canvas(pages[i], {
-                    scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff",
-                    width: pages[i].scrollWidth, height: pages[i].scrollHeight,
-                });
-                const imgData = canvas.toDataURL("image/jpeg", 0.95);
-                pdf.addImage(imgData, "JPEG", 0, 0, 210, 297);
-            }
-            pdf.save(`Declaracao_ISSQN_${dadosPessoais.cpf.replace(/\D/g, '')}.pdf`);
+        try {
+            // Importa o pdfmake dinamicamente para evitar erro de servidor (Next.js)
+            const pdfMake = (await import("pdfmake/build/pdfmake")).default;
+            const pdfFonts = (await import("pdfmake/build/vfs_fonts")).default;
+            pdfMake.vfs = pdfFonts.pdfMake ? pdfFonts.pdfMake.vfs : pdfFonts.vfs;
+
+            // Importa nosso template montador
+            const { createDeclaracaoDoc } = await import("@/utils/pdf/pdf-template-declaracao");
+
+            // Empacota os dados para a função
+            const formData = { dadosPessoais, dadosEndereco, dadosProfissionais };
+
+            // Monta o documento passando os dados e a UPF atual
+            const docDefinition = createDeclaracaoDoc(formData, VALOR_UPF_ATUAL);
+
+            // Gera e Baixa o PDF
+            pdfMake.createPdf(docDefinition).download(`Declaracao_ISSQN_${dadosPessoais.cpf.replace(/\D/g, '')}.pdf`);
+
         } catch (error) {
             console.error("Erro ao gerar PDF:", error);
-            alert("Erro ao gerar PDF.");
+            alert("Erro ao gerar PDF. Verifique o console para mais detalhes.");
         } finally {
             setIsGeneratingPdf(false);
         }
@@ -154,7 +153,7 @@ export default function DeclaracaoAutonomoPage() {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8 max-w-4xl relative">
+        <div data-search-root className="container mx-auto px-4 py-8 max-w-4xl relative">
 
             {/* --- SOBREPOSIÇÃO DE CARREGAMENTO (LOADING OVERLAY) --- */}
             {isGeneratingPdf && (
@@ -242,14 +241,6 @@ export default function DeclaracaoAutonomoPage() {
                     </div>
 
                 </form>
-                
-                {/* PDF Oculto para renderização */}
-                <DeclaracaoPDF
-                    ref={pdfRef}
-                    dadosPessoais={dadosPessoais}
-                    dadosEndereco={dadosEndereco}
-                    dadosProfissionais={dadosProfissionais}
-                />
             </div>
         </div>
     );
