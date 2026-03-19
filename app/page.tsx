@@ -180,7 +180,7 @@ export default function DeclaracaoAutonomoPage() {
                         Para fins de lançamento do ISSQN
                     </h2>
                     <p className="text-gray-500 text-sm">
-                        Prefeitura Municipal de Porto Velho - Secretaria Municipal de Fazenda (SEMFAZ)
+                        Prefeitura Municipal de Porto Velho - Secretaria Municipal de Economia (SEMEC)
                     </p>
                 </div>
 
