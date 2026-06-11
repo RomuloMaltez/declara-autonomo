@@ -5,6 +5,7 @@ import { z } from "zod";
 import DadosPessoaisSection from "@/components/DadosPessoaisSection";
 import EnderecoSection from "@/components/EnderecoSection";
 import DadosProfissionaisSection, { VALOR_UPF_ATUAL } from "@/components/DadosProfissionaisSection";
+import GuiaContribuinte from "@/components/GuiaContribuinte";
 
 // 1. Tipagem dos Erros (Agora com os Dados Profissionais)
 export type FormErrors = {
@@ -160,6 +161,9 @@ export default function DeclaracaoAutonomoPage() {
     return (
         <div data-search-root className="container mx-auto px-4 py-8 max-w-4xl relative">
 
+            {/* GUIA PRÁTICO / PASSO A PASSO DO CONTRIBUINTE */}
+            <GuiaContribuinte />
+
             {/* --- SOBREPOSIÇÃO DE CARREGAMENTO (LOADING OVERLAY) --- */}
             {isGeneratingPdf && (
                 <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -169,7 +173,7 @@ export default function DeclaracaoAutonomoPage() {
                 </div>
             )}
 
-            <div className="bg-white rounded-lg shadow-lg p-6 md:p-10 border border-gray-200">
+            <div id="formulario-declaracao" className="bg-white rounded-lg shadow-lg p-6 md:p-10 border border-gray-200 scroll-mt-6">
 
                 {/* CABEÇALHO */}
                 <div className="text-center mb-8">
